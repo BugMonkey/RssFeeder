@@ -1,10 +1,33 @@
 import UIAbility from '@ohos.app.ability.UIAbility';
 import hilog from '@ohos.hilog';
 import window from '@ohos.window';
+// 导入KV数据库模块
+import distributedKVStore from '@ohos.data.distributedKVStore';
+import relationalStore from '@ohos.data.relationalStore';
 
+export var kvManager:distributedKVStore.KVManager;
 export default class EntryAbility extends UIAbility {
+
   onCreate(want, launchParam) {
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onCreate');
+    let context = this.context;
+    const kvManagerConfig = {
+      context:context,
+      bundleName:'com.cheercola.rssfeeder'
+    };
+    try {
+      kvManager = distributedKVStore.createKVManager(kvManagerConfig)
+      console.error('创建kvmanager成功')
+    }catch (e){
+      console.error('创建kvmanager失败')
+    }
+
+    const STORE_CONFIG = {
+      name: 'Rss.db', // 数据库文件名
+      securityLevel: relationalStore.SecurityLevel.S1 // 数据库安全级别
+    };
+
+
   }
 
   onDestroy() {

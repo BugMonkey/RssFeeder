@@ -8,8 +8,10 @@ struct Index {
     Row() {
       Column() {
         Text(this.message)
+          .fontStyle(FontStyle.Italic)
           .fontSize(50)
           .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.accent_color'))
       }
       .width('100%')
     }
@@ -17,7 +19,7 @@ struct Index {
     .onAppear(()=>{
       setTimeout(()=>{
         router.replaceUrl({
-          url: 'pages/ImportRss' // 目标url
+          url: 'pages/main/Main' // 目标url
         }, router.RouterMode.Single,)
       },3_000)
     })
@@ -25,3 +27,4 @@ struct Index {
 
 
 }
+
