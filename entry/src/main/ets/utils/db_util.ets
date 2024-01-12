@@ -1,5 +1,5 @@
 import relationalStore from '@ohos.data.relationalStore'; // 导入模块
-import { RssDbModel } from '../models/RssDbModel';
+import { RssDbObject } from '../models/RssDbModel';
 
 export class DbUtil {
   static STORE_CONFIG = {
@@ -39,7 +39,7 @@ export class DbUtil {
 
 
   // 查询所有添加的数据
-  static async queryAllRssData(context: Context): Promise<Array<RssDbModel>> {
+  static async queryAllRssData(context: Context): Promise<Array<RssDbObject>> {
     return new Promise((resolve, reject) => {
       let result = []
       this.getDb(context, (store) => {
@@ -55,7 +55,7 @@ export class DbUtil {
           resultSet.goToFirstRow()
           while (!resultSet.isEnded) {
 
-            const rss = new RssDbModel(
+            const rss = new RssDbObject(
               resultSet.getLong(resultSet.getColumnIndex("ID")),
               resultSet.getString(resultSet.getColumnIndex("NAME")),
               resultSet.getString(resultSet.getColumnIndex("LOGO")),

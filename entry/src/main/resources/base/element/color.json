@@ -6,6 +6,10 @@
     },
     {
       "name": "accent_color",
+      "value": "#4D527853"
+    },
+    {
+      "name": "secondary_color",
       "value": "#527853"
     }
   ]

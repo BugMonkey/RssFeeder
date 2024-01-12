@@ -1,16 +1,19 @@
-export class RssDbModel {
-  id: number
-  name: string
-  link: string
-  logo: string
-  description: string
-  isChecked = false
-  constructor(id: number, name: string, link: string, logo: string, description: string) {
-    this.id = id
-    this.name = name
-    this.link = link
-    this.logo = logo
-    this.description = description
-    this.isChecked = false
+export class RssDbObject {
+  id: number;
+  public  name: string;
+  link: string;
+  logo: string;
+  description: string;
+  group:string = '';
+
+  constructor();
+  constructor(id: number, name: string, link: string, logo: string, description: string,group?:string);
+  constructor(id?: number, name?: string, link?: string, logo?: string, description?: string,group?:string) {
+    this.id = id || 0;
+    this.name = name || '';
+    this.link = link || '';
+    this.logo = logo || '';
+    this.description = description || '';
+    this.group = group
   }
 }

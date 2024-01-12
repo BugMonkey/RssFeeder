@@ -3,7 +3,8 @@
     "pages/Index",
     "pages/import/ImportRss",
     "pages/main/Main",
-    "pages/rss_detail/RssDetailPage"
+    "pages/rss_detail/RssDetailPage",
+    "pages/my_rss/MyRss"
 
   ]
 }

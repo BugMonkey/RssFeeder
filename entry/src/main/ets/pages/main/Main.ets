@@ -1,25 +1,59 @@
 import router from '@ohos.router';
-import { RssDbModel } from '../../models/RssDbModel';
+import { RssDbObject } from '../../models/RssDbModel';
+import { RssObject } from '../../rssObject';
+import { CommonDataSource } from '../../utils/CommonDataSource';
+import { CommonUtil } from '../../utils/CommonUtil';
+import { RssDetailPage } from '../rss_detail/RssDetailPage';
 import { MainViewModel } from './MainViewModel';
+import { RssListByGroup } from './rss_group/RssListByGroup';
 
-@Entry
+AppStorage.SetOrCreate('rss', [{ group: '语文', items: [new RssObject()] }])
+let storage = new LocalStorage({ 'rss': [{ group: '语文', items: [new RssObject()] }] })
+
+@Entry(storage)
 @Component
 struct MainPage {
   @State viewModel: MainViewModel = new MainViewModel()
+  @StorageLink('rss') @Watch('rssStoreChange') rssStore: RssObject[] = []
+  @State rssGroup: {
+    group: string,
+    items: RssObject[]
+  }[] = []
+  @State currentIndex: number = 0
 
   @Builder NavigationMenus() {
     NavRouter() {
       Row() {
-        Text(`添加`)
-          .fontSize(14)
+        Text(`我的订阅`)
+          .fontColor($r('app.color.secondary_color'))
+          .fontSize(12)
           .textAlign(TextAlign.Start)
           .onClick(() => {
-            router.pushUrl({ url: 'pages/import/ImportRss' },)
+            router.pushUrl({ url: 'pages/my_rss/MyRss' },)
           })
       }
-      .borderRadius(24)
 
     }
+  }
+
+  rssStoreChange() {
+    let groups: {
+      group: string,
+      items: RssObject[]
+    }[] = []
+    for (const item of this.rssStore) {
+      const key = item.group
+      let index = groups.findIndex(e => e.group == key)
+      if (index < 0) {
+        groups.push({ group: key, items: [item] })
+      } else {
+        groups[index].items.push(item)
+      }
+    }
+    // groups.push({ group: '语文', items: [] })
+    // groups.push({ group: '数学', items: [] })
+    // groups.push({ group: '外语', items: [] })
+    this.rssGroup = groups
   }
 
   build() {
@@ -28,15 +62,24 @@ struct MainPage {
         if (!this.viewModel.inited) {
           LoadingProgress().color($r('app.color.accent_color')).size({ width: 30, height: 30 })
         } else {
-          Refresh({ refreshing: $$this.viewModel.isRefreshing }) {
-            ListViewContainer({ list: this.viewModel.rssList })
-              .margin({ top: 10 })
+          if (this.rssStore.length > 0) {
+            Tabs() {
+              ForEach(this.rssGroup, (item, index) => {
+                TabContent() {
+                  RssListByGroup({ rssGroup: item.items })
+                }
+                .tabBar(this.tabBarBuilder(item.group, index))
+
+              })
+            }
+            .barMode(BarMode.Scrollable)
+            .animationDuration(400)
+            .onChange((index: number) => {
+              this.currentIndex = index
+            })
+          } else {
+            Text('暂无订阅，请先添加').fontColor($r('app.color.secondary_color'))
           }
-          .onRefreshing(() => {
-            this.viewModel.rssList = []
-            this.viewModel.loadData()
-          })
-          .height('100%')
         }
 
       }
@@ -45,69 +88,41 @@ struct MainPage {
 
     }
     .menus(this.NavigationMenus())
-    .title('我的订阅')
+    .title(this.title())
     .titleMode(NavigationTitleMode.Mini)
+    .hideTitleBar(false)
     .mode(NavigationMode.Stack)
     .hideBackButton(true)
 
   }
 
-  onPageShow() {
-    this.viewModel.loadData();
+  @Builder title() {
+    Text('RssFeeder').fontColor($r('app.color.secondary_color')).fontStyle(FontStyle.Italic).fontSize(20)
   }
-}
 
-@Component
-struct ListViewContainer {
-  @Prop list: Array<RssDbModel>
-
-  build() {
-    Flex({ alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {
-      if (this.list.length == 0) {
-        Text('暂无数据').textAlign(TextAlign.Center)
-      } else {
-        List({ space: 12, initialIndex: 0 }) {
-          ForEach(this.list, (item, index) => {
-            ListItem() {
-              NavRouter() {
-                MainPageListItem({ item: item })
-                NavDestination() {
-                  Text(item.name)
-                }.title("NavDestinationTitle" + item)
-              }
-            }.margin({ left: 10, right: 10 })
-          }, item => item.id)
+  @Builder tabBarBuilder(name: string, index: number) {
+    Column({ space: 5 }) {
+      Text(name)
+        .fontColor(index == this.currentIndex ? $r('app.color.secondary_color') : $r('app.color.accent_color'))
+        .textAlign(this.rssGroup.length > 1 ? TextAlign.Center : TextAlign.Start)
+        .padding({ left: 15, right: 15 })
+        .width(`${100 / Math.min(this.rssGroup.length, 4)}%`)
+      if (this.rssGroup.length > 1) {
+        Shape() {
+          Rect().width(30).height(4).radius(4).fill($r('app.color.secondary_color'))
         }
-        .width('100%')
-        .height('100%')
+        .visibility(index == this.currentIndex ? Visibility.Visible : Visibility.Hidden)
+
       }
     }
-    .width('100%')
-    .height('100%')
+
+  }
+
+  onPageShow() {
+    // this.viewModel.loadData();
+    // this.viewModel.loadFromRawFile(getContext(this));
+    this.rssStoreChange()
 
   }
 }
 
-@Component
-struct MainPageListItem {
-  item: RssDbModel;
-  private index: number = 0;
-
-  build() {
-    Column({ space: 10 }) {
-      Text('' + this.item.name)
-        .fontSize(16)
-        .fontWeight(500)
-        .textAlign(TextAlign.Center)
-      Text('' + this.item.description)
-        .fontSize(12)
-        .textAlign(TextAlign.Center)
-    }
-    .width('100%')
-    .alignItems(HorizontalAlign.Start)
-    .padding(10)
-    .backgroundColor($r('app.color.start_window_background'))
-    .border({ style: BorderStyle.Solid, color: Color.Gray, width: 0.2, radius: 10 })
-
-  }
-}

@@ -55,27 +55,18 @@ export async function rssRequest(url: string): Promise<RssXmlResult> {
         parseResult.link = channel.find((e) => e['_name'] == 'link')?.['_elements'][0]?.['_text'];
         parseResult.describe = channel.find((e) => e['_name'] == 'description')?.['_elements'][0]?.['_text'];
       }
-      let items = Array.from(jsonObj['_elements'][0]['_elements']).filter((e) => e['_name'] == 'item')
-      parseResult.items = items.map((e) => {
-        let item = new RssItem()
-        let attrs = e['_elements']
+      // 需要迭代查找item标签
+      let itemTags = findElementByTag('item',[jsonObj])
 
-        for (let attrsKey in attrs) {
-          let attr = attrs[attrsKey]
-          if (attr['_name'] == 'title') {
-            item.title = attr['_elements'][0]['_text'] ?? attr['_elements'][0]['_cdata']
-          }
-          if (attr['_name'] == 'creator') {
-            item.creator = attr['_elements'][0]['_text']
-          }
-          if (attr['_name'] == 'date') {
-            item.pubDate = new Date(Date.parse(attr['_elements'][0]['_text']))
-          }
-          item.source = parseResult.title
-          item.sourceLogo = parseResult.logo
-          if (attr['_name'] == 'link') {
-            item.url = attr['_elements'][0]['_text']
-          }
+      parseResult.items = itemTags.map((e) => {
+        let item = new RssItem()
+        item.title = findFirstTagContent('title',e)
+        item.source = parseResult.title
+        item.describe = findFirstTagContent('description',e)
+        item.url = findFirstTagContent('link',e)
+        const  dateString = findFirstTagContent('pubDate',e)
+        if (dateString.length > 0) {
+          item.pubDate = new Date(Date.parse(dateString))
         }
         return item
       })
@@ -90,7 +81,60 @@ export async function rssRequest(url: string): Promise<RssXmlResult> {
     return new RssXmlResult(false, { msg: e['message'] })
   }
 
+  //根据tag查找元素
+  function findElementByTag(tag:string,objs:Array<Object>): Array<Object>{
+    let targets:Array<Object> = []
+    for (const obj of objs) {
+      const keys = Object.keys(obj)
+      if (keys) {
+        if (keys.indexOf('_name')!=-1){
+          if (obj['_name']==tag) {
+            //定位到tag
+            targets.push(obj)
+          }
 
+        }
+        if (keys.indexOf('_elements')!=-1) {
+          targets.push(...findElementByTag(tag,obj['_elements']))
+        }
+
+      }
+    }
+
+    return targets
+  }
+
+  //查找第一个标签为tag的元素的内容
+  function findFirstTagContent(tag,obj:Object){
+    const tags = findElementByTag(tag,[obj])
+    if (tags[0]) {
+      return findElementContent(tags[0])
+    }
+    return ''
+  }
+  //查找元素的内容
+  function findElementContent(obj:Object): string{
+    //内部元素
+    const tagElements = obj['_elements']
+    //遍历这个tag内部的元素
+    if (tagElements) {
+      for (const element of tagElements) {
+        if (element['_type'] == 'cdata') {
+          return element['_cdata']
+        }
+        if (element['_type'] == 'text') {
+          return element['_text']
+        }
+        if (element['_elements']) {
+          for (const element of tagElements) {
+            return findElementContent(element)
+          }
+        }
+      }
+    }
+
+    return ''
+  }
 }
 
 

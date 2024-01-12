@@ -1,12 +1,23 @@
+import { RssDbObject } from '../../models/RssDbModel'
+import { RssDetailViewModel } from './RssDetailViewModel'
+
 @Entry
 @Component
-struct RssDetailPage {
+export struct RssDetailPage {
+  item: RssDbObject = new RssDbObject(1, '1', 'link', 'logo', 'describe')
+  @State private viewModel: RssDetailViewModel = new RssDetailViewModel()
+
   build() {
-      NavRouter(){
-        Text('1')
-        NavDestination(){
-          Text('1_1')
-        }
-      }
+    NavDestination() {
+      Flex()
+        .size({ width: '100%', height: '100%' })
+        .backgroundColor(Color.White)
+    }
+    .title(this.item.name)
+
+  }
+
+  onPageShow() {
+    this.viewModel.loadRssLink(this.item.link)
   }
 }

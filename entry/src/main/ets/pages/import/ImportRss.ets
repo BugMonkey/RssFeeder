@@ -6,6 +6,9 @@ import router from '@ohos.router';
 import distributedKVStore from '@ohos.data.distributedKVStore';
 import { kvManager } from '../../entryability/EntryAbility';
 import { DbUtil } from '../../utils/db_util';
+import ArrayList from '@ohos.util.ArrayList';
+import { CommonDataSource } from '../../utils/CommonDataSource';
+import { FixSizeWrap } from '../../components/SizeWrap';
 
 @Entry
 @Component
@@ -14,9 +17,25 @@ struct ImportRssPage {
   @State urlText: string = ''
   @State resultText: RssObject | null = null
   @State errorResultText: string | null = null
+  dialogController: CustomDialogController = new CustomDialogController({
+    builder: AddRssConfirmDialog({
+      rssObj:this.resultText,
+      cancel: this.onCancel,
+      confirm: this.onAccept,
+    }),
+    alignment: DialogAlignment.Default,  // 可设置dialog的对齐方式，设定显示在底部或中间等，默认为底部显示
+  })
+  onCancel() {
+    console.info('onCancel is clicked')
+  }
+  onAccept() {
+    console.info('onAccept is clicked')
+    // this.saveToCache(this.resultText)
+    router.back()
+  }
 
   build() {
-    Column() {
+    Flex({ direction: FlexDirection.Column }) {
       //标题
       titleBar()
 
@@ -24,16 +43,18 @@ struct ImportRssPage {
       this.inputRss()
 
       this.result()
-
-      Blank()
     }
   }
 
   doSearch() {
-
-
-    if (this.urlText.trim().length == 0 ||
-    !this.urlText.startsWith("http")) {
+    let fake = new RssObject()
+    fake.title = '这是标题'
+    fake.link = '这是链接'
+    this.resultText = fake
+    return
+    if(this.urlText.trim().length == 0 ||
+    !this.urlText.startsWith("http"))
+    {
       //校验url
 
       promptAction.showToast({ message: "请输入正确的URL" })
@@ -42,7 +63,7 @@ struct ImportRssPage {
     this.isSearching = true
     console.debug('doSearch', this.urlText)
     rssRequest(this.urlText.trim())
-    // rssRequest('https://www.pnas.org/action/showFeed?type=searchTopic&taxonomyCode=type&tagCode=twip')
+      // rssRequest('https://www.pnas.org/action/showFeed?type=searchTopic&taxonomyCode=type&tagCode=twip')
       .then(result => {
         if (result.isSuccess) {
 
@@ -86,13 +107,13 @@ struct ImportRssPage {
       })
       .width(60).height(32)
     }
-    .padding(15)
+    .padding({ left: 15, right: 15 })
     .width('100%')
   }
 
   //搜索结果
   @Builder result() {
-    Scroll() {
+    Stack() {
       if (this.resultText != null) {
         Column({ space: 5, }) {
 
@@ -107,10 +128,12 @@ struct ImportRssPage {
             }
             .backgroundColor($r('app.color.accent_color'))
             .onClick(() => {
-              this.saveToCache(this.resultText)
-              router.replaceUrl({ url: 'pages/Main', params: this.resultText?.title })
+              this.dialogController.open()
+              // this.saveToCache(this.resultText)
+              // router.back()
             })
             .width(60).height(32)
+
           }
           .padding(10)
           .width('100%')
@@ -121,8 +144,6 @@ struct ImportRssPage {
       } else {
 
       }
-
-
     }
     .padding(18)
     .width('100%')
@@ -163,9 +184,9 @@ struct ImportRssPage {
 
 
 @Builder function titleBar() {
-  Row(){
+  Row() {
     Image($r('app.media.back'))
-      .size({width:25,height:25}).onClick(()=>{
+      .size({ width: 25, height: 25 }).onClick(() => {
       router.back()
     })
     Text('添加订阅')
@@ -175,10 +196,66 @@ struct ImportRssPage {
     Blank()
   }
   .alignItems(VerticalAlign.Center)
-  .padding({left:15})
+  .padding({ left: 15 })
   .width('100%')
 
 }
 
+@CustomDialog
+struct AddRssConfirmDialog {
+  rssObj:RssObject
+  controller: CustomDialogController
+  cancel: () => void
+  confirm: () => void
+  build() {
+    Column() {
 
+      Column(){
+        Text('标题').subTitleStyle()
+        TextInput({text:this.rssObj.title||''}).editStyle()
+        Text('地址').subTitleStyle()
+        TextInput({text:this.rssObj.link||''}).editStyle()
+        Text('类型').subTitleStyle()
+        TextInput({text:'自定义',placeholder:'请输入类别'}).editStyle()
+      }
+      .alignItems(HorizontalAlign.Start)
+      .margin(20)
+
+
+      Row(){
+        Button('取消').flexGrow(1)
+          .onClick(() => {
+            this.controller.close()
+            this.cancel()
+          }).backgroundColor(0xffffff).fontColor(Color.Black)
+        Button('确认').flexGrow(1)
+          .onClick(() => {
+            this.controller.close()
+            this.confirm()
+          }).fontColor($r('app.color.secondary_color')).backgroundColor(0xffffff)
+      }
+      .justifyContent(FlexAlign.SpaceEvenly)
+      .margin({ left: 10,right:10 })
+      .width('100%')
+    }
+  }
+}
+
+
+@Extend(TextInput) function editStyle(){
+  .fontSize(14)
+  .fontColor(0x333333)
+  .backgroundColor(Color.Transparent)
+  .borderRadius(1)
+  .border({style:{bottom:BorderStyle.Solid,left:BorderStyle.Dashed},width: { left: 0, right: 0, top: 0, bottom: 0.5 },color:$r('app.color.accent_color')})
+  .height(40)
+  .padding({left:4,right:4,top:2,bottom:2})
+  .caretColor($r('app.color.secondary_color'))
+  .margin({bottom:10})
+
+}
+@Extend(Text) function subTitleStyle(){
+  .fontSize(11)
+  .fontColor($r('app.color.secondary_color'))
+}
 
