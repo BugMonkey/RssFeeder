@@ -1,14 +1,10 @@
 import router from '@ohos.router';
-import { RssDbObject } from '../../models/RssDbModel';
 import { RssObject } from '../../rssObject';
-import { CommonDataSource } from '../../utils/CommonDataSource';
-import { CommonUtil } from '../../utils/CommonUtil';
-import { RssDetailPage } from '../rss_detail/RssDetailPage';
 import { MainViewModel } from './MainViewModel';
 import { RssListByGroup } from './rss_group/RssListByGroup';
 
-AppStorage.SetOrCreate('rss', [{ group: '语文', items: [new RssObject()] }])
-let storage = new LocalStorage({ 'rss': [{ group: '语文', items: [new RssObject()] }] })
+AppStorage.SetOrCreate('rss', [])
+let storage = new LocalStorage({ 'rss': [] })
 
 @Entry(storage)
 @Component
@@ -79,6 +75,9 @@ struct MainPage {
             })
           } else {
             Text('暂无订阅，请先添加').fontColor($r('app.color.secondary_color'))
+              .onClick(() => {
+                router.pushUrl({ url: 'pages/my_rss/MyRss' },)
+              })
           }
         }
 

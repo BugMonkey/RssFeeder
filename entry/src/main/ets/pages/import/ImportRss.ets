@@ -5,7 +5,7 @@ import { RssItem, RssObject } from '../../rssObject';
 import router from '@ohos.router';
 import distributedKVStore from '@ohos.data.distributedKVStore';
 import { kvManager } from '../../entryability/EntryAbility';
-import { DbUtil } from '../../utils/db_util';
+import { DbHelper } from '../../utils/Dbhelper';
 import ArrayList from '@ohos.util.ArrayList';
 import { CommonDataSource } from '../../utils/CommonDataSource';
 import { FixSizeWrap } from '../../components/SizeWrap';
@@ -165,7 +165,9 @@ struct ImportRssPage {
         kvStoreType: distributedKVStore.KVStoreType.SINGLE_VERSION, // 设置要创建的数据库类型，默认为多设备协同数据库
         securityLevel: distributedKVStore.SecurityLevel.S2 // 设置数据库安全级别
       }
-      DbUtil.insertRssData(getContext(this), obj.title??'', obj.link??'', obj.logo??'', obj.describe??'')
+      DbHelper.insertRssData(getContext(this),{
+        title: obj.title??'',group:obj.group??'自定义' ,link:obj.link??'',logo: obj.logo??'', describe:obj.describe??''
+      })
       // storeId为数据库唯一标识符
       kvManager.getKVStore<distributedKVStore.SingleKVStore>('storeId', options, (err, kvStore) => {
         if (err) {

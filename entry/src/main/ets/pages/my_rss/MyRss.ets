@@ -1,7 +1,8 @@
 import router from '@ohos.router';
 import { FixSizeWrap } from '../../components/SizeWrap';
-import { RssObject } from '../../rssObject';
-import { CommonUtil } from '../../utils/CommonUtil';
+import { RssItem, RssObject } from '../../rssObject';
+import { CommonDataSource } from '../../utils/CommonDataSource';
+import { MyRssViewModel } from './MyRssViewModel';
 
 
 /**
@@ -10,78 +11,11 @@ import { CommonUtil } from '../../utils/CommonUtil';
 @Entry
 @Component
 struct MyRss {
-  @State curIndex: number = 0;
+
+  @State viewModel:MyRssViewModel = new MyRssViewModel()
   // @State @Watch('onRssPickedChange') pickedRss: Object[] = []
   @StorageLink('rss') @Watch('onRssPickedChange') pickedRss:RssObject[] = new Array<RssObject>()
-  rssData: {group:string,items:RssObject[]}[] = [
-    {
-      group: '新闻',
-      items: [
-        {
-          title: '喷嚏图卦',
-          link: 'https://plink.anyfeeder.com/pentitugua'
-        },
-        {
-          title: 'Daily 每日环球视野',
-          link: 'https://plink.anyfeeder.com/idaily/today'
-        }
-      ]
-    },
-    {
-      group: '科技',
-      items: [
-        {
-          title: 'Solidot',
-          link: 'https://plink.anyfeeder.com/pentitugua'
-        },
-        {
-          title: '数字尾巴',
-          link: 'https://plink.anyfeeder.com/idaily/today'
-        },
-        {
-          title: '36氪',
-          link: 'https://plink.anyfeeder.com/idaily/today'
-        }
-        ,
-        {
-          title: 'cnBeta',
-          link: 'https://plink.anyfeeder.com/idaily/today'
-        }
-        ,
-        {
-          title: 'IT 之家',
-          link: 'https://plink.anyfeeder.com/idaily/today'
-        }
-      ]
-    },
-    {
-      group: '知识',
-      items: [
-        {
-          title: '知乎日报',
-          link: 'https://plink.anyfeeder.com/pentitugua'
-        },
-        {
-          title: '知乎日报',
-          link: 'https://plink.anyfeeder.com/idaily/today'
-        },
-        {
-          title: '人人都是产品经理',
-          link: 'https://plink.anyfeeder.com/idaily/today'
-        }
-        ,
-        {
-          title: 'cnBeta',
-          link: 'https://plink.anyfeeder.com/idaily/today'
-        }
-        ,
-        {
-          title: 'IT 之家',
-          link: 'https://plink.anyfeeder.com/idaily/today'
-        }
-      ]
-    }
-  ]
+
   //控制左侧菜单内容
   leftListController: Scroller = new Scroller()
   //控制右侧分组内容
@@ -91,6 +25,8 @@ struct MyRss {
     width: number,
     height: number
   } = { width: 0, height: 0 }
+
+
 
   @Builder itemHead(text: string) {
     Text(text)
@@ -107,90 +43,109 @@ struct MyRss {
     console.log('onRssPickedChange : ', rssStr)
   }
 
+
+
   build() {
     Column() {
       titleBar()
-      Row() {
-        Scroll(this.leftListController) {
-          Column() {
+      if (this.viewModel.loading){
+        LoadingProgress().size({width:40,height:40}).height('100%')
+      }else {
+        if (this.viewModel.rssData.length > 0){
+          Row() {
+            Scroll(this.leftListController) {
+              Column() {
 
-            ForEach(this.rssData.map(e => e.group), (item, index) => {
-
-
-              Text(`${item} `)
-                .padding(10)
-
-                .onClick(() => {
-
-                  this.curIndex = index;
-
-                })
-                .width(100)
-                .backgroundColor(this.curIndex == index ? $r('app.color.accent_color') : Color.Transparent)
+                ForEach(this.viewModel.rssData.map(e => e.group), (item, index) => {
 
 
-                .height(50)
-            })
-          }
-          .width(100)
-        }
-        .scrollBar(BarState.Off)
-        .width(100)
+                  Text(`${item} `)
+                    .padding(10)
 
-        FixSizeWrap({ childSize: $childSize }) {
-          List({ space: 0, scroller: this.rightListController }) {
-            ForEach(this.rssData[this.curIndex].items, (project:RssObject) => {
-              ListItem() {
-                Row() {
-                  Text(project.title)
+                    .onClick(() => {
 
-                    .height(50).fontSize(16)
-                    .textAlign(TextAlign.Center)
-                  Blank()
-                  Checkbox()
-                    .select(this.pickedRss.findIndex(e=>project.title == e.title) >= 0)
-                    .selectedColor($r('app.color.accent_color'))
-                    .onChange((value: boolean) => {
-                      if (value) {
-                        project.group = this.rssData[this.curIndex].group
-                        this.pickedRss.push(project)
-                      } else {
-                        const removeIndex = this.pickedRss.findIndex(e=>project.title == e.title)
-                        if (removeIndex >= 0) {
-                          this.pickedRss.splice(removeIndex, 1)
-                        }
+                      this.viewModel.updateCurrentIndex(index)
 
-                      }
-                      console.log(this.pickedRss.length.toString());
                     })
-                }
-                .padding({ left: 10, right: 10 })
-                .width(this.childSize.width)
-              }
-            }, item => item.title)
-          }
-          .edgeEffect(EdgeEffect.Spring)
-          .onReachStart(() => {
-            console.log('onReachStart')
-          })
-          .onReachEnd(() => {
-            console.log('onReachEnd')
-          })
-          .sticky(StickyStyle.Header | StickyStyle.Footer)
-          .onScrollIndex((start, end) => {
-            console.log(start.toString(), end.toString())
-          })
-          .width(this.childSize.width)
+                    .width(100)
+                    .backgroundColor(this.viewModel.curIndex == index ? $r('app.color.accent_color') : Color.Transparent)
 
+
+                    .height(50)
+                })
+              }
+              .width(100)
+            }
+            .scrollBar(BarState.Off)
+            .width(100)
+
+
+              List({ space: 0, scroller: this.rightListController }) {
+                LazyForEach(this.viewModel.dataSource, (project:RssObject) => {
+                  ListItem() {
+                    Row() {
+                      Text(project.title)
+
+                        .height(50).fontSize(16)
+                        .textAlign(TextAlign.Center)
+                      Blank()
+                      Checkbox()
+                        .select(this.pickedRss.findIndex(e=>project.title == e.title) >= 0)
+                        .selectedColor($r('app.color.accent_color'))
+                        .onChange((value: boolean) => {
+                          if (value) {
+                            this.pickedRss.push(project)
+                          } else {
+                            const removeIndex = this.pickedRss.findIndex(e=>project.title == e.title)
+                            if (removeIndex >= 0) {
+                              this.pickedRss.splice(removeIndex, 1)
+                            }
+
+                          }
+                          console.log(this.pickedRss.length.toString());
+                        })
+                    }
+                    .padding({ left: 10, right: 10 })
+                    .width(this.childSize.width)
+                  }
+                }, (item:RssObject) => item.link+item.title)
+              }
+              .edgeEffect(EdgeEffect.Spring)
+              .onReachStart(() => {
+                console.log('onReachStart')
+              })
+              .onReachEnd(() => {
+                console.log('onReachEnd')
+              })
+              .sticky(StickyStyle.Header | StickyStyle.Footer)
+              .onScrollIndex((start, end) => {
+                console.log(start.toString(), end.toString())
+              })
+              .width(this.childSize.width)
+              .height(820)
+
+              .flexGrow(1)
+
+              .onAreaChange((_, newValue) => {
+                this.childSize = { width: newValue.width as number, height: newValue.height as number }
+                console.log('onAreaChange',this.childSize.width.toString(),this.childSize.height.toString())
+              })
+
+          }
+          .alignItems(VerticalAlign.Top)
+          .width('100%')
+          .height('100%')
         }
 
       }
-      .alignItems(VerticalAlign.Top)
-      .width('100%')
+
     }
     .height('100%')
     .width('100%')
+  }
 
+  onPageShow(){
+    this.viewModel.loadDataFromDb(getContext(this))
   }
 }
 

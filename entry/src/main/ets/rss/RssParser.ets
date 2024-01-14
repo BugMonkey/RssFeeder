@@ -16,7 +16,7 @@ export class RssParser {
     items = result.flat()
     //排序
     items.sort((a, b) => {
-      return a.pubDate?.getTime() ?? 0 - b.pubDate?.getTime() ?? 0
+      return (a.pubDate?.getTime() ?? 0) - (b.pubDate?.getTime() ?? 0)
     })
     return items
   }
@@ -28,7 +28,7 @@ export class RssParser {
       return []
     }
     let rssItems: RssItem[] = []
-    let result = await rssRequest('https://plink.anyfeeder.com/pentitugua')
+    let result = await rssRequest(url)
     if (result.isSuccess) {
       rssItems.push(...(result.result.items || []))
     } else {

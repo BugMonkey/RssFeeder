@@ -1,10 +1,11 @@
 import { RssDbObject } from '../../models/RssDbModel'
+import { RssObject } from '../../rssObject'
 import { RssDetailViewModel } from './RssDetailViewModel'
 
 @Entry
 @Component
 export struct RssDetailPage {
-  item: RssDbObject = new RssDbObject(1, '1', 'link', 'logo', 'describe')
+  item: RssObject = new RssObject()
   @State private viewModel: RssDetailViewModel = new RssDetailViewModel()
 
   build() {
@@ -13,7 +14,7 @@ export struct RssDetailPage {
         .size({ width: '100%', height: '100%' })
         .backgroundColor(Color.White)
     }
-    .title(this.item.name)
+    .title(this.item.title)
 
   }
 

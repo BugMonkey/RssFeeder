@@ -24,7 +24,7 @@ export struct RssListByGroup {
   }
 
   aboutToAppear() {
-    this.viewModel.loadData(this.rssGroup)
+    this.viewModel.refresh(this.rssGroup)
   }
 }
 

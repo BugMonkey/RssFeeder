@@ -81,4 +81,9 @@ export class CommonDataSource<T> implements IDataSource {
 			listener.onDataMove(from, to);
 		})
 	}
+
+	setData(element: T[]){
+		this.dataArray = element
+		this.notifyDataReload()
+	}
 }
