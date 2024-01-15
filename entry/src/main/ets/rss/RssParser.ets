@@ -6,19 +6,23 @@ import common from '@ohos.app.ability.common';
 
 export class RssParser {
   async parseRssFromUrls(urls: string[]):Promise<RssItem[]> {
-    let items: RssItem[] = []
-    // for (const url of urls) {
+    let result = await Promise.all(urls.map(url => this.parseRssUrl(url)))
+    return new Promise((resolve)=>{
+      let items: RssItem[] = []
+      // for (const url of urls) {
       // let task: taskpool.Task = new taskpool.Task(this.parseRssUrl)
       // let taskResult = await taskpool.execute(task)
       // items.push(...taskResult)
-    // }
-    let result = await Promise.all(urls.map(url => this.parseRssUrl(url)))
-    items = result.flat()
-    //排序
-    items.sort((a, b) => {
-      return (b.pubDate?.getTime() ?? 0) - (a.pubDate?.getTime() ?? 0)
+      // }
+
+      items = result.flat()
+      //排序
+      items.sort((a, b) => {
+        return (b.pubDate?.getTime() ?? 0) - (a.pubDate?.getTime() ?? 0)
+      })
+      resolve(items)
     })
-    return items
+
   }
 
 

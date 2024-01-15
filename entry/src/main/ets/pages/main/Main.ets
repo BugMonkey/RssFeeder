@@ -10,8 +10,11 @@ let storage = new LocalStorage({ 'rss': [] })
 @Component
 struct MainPage {
   @State viewModel: MainViewModel = new MainViewModel()
-  //我的定位
+  //我的订阅
   @StorageLink('rss') rssStore: RssObject[] = []
+  @State groups:string[] = []
+  @State items:RssObject[] = []
+
   @State rssGroup: {
     group: string,
     items: RssObject[]
@@ -47,6 +50,8 @@ struct MainPage {
         groups[index].items.push(item)
       }
     }
+    // this.groups = [...groups.values()].map((e)=>e.group)
+    // this.item= [...groups.values()].map((e)=>e.group)
     this.rssGroup = groups
   }
 
@@ -56,15 +61,15 @@ struct MainPage {
         if (!this.viewModel.inited) {
           LoadingProgress().color($r('app.color.accent_color')).size({ width: 30, height: 30 })
         } else {
-          if (this.rssStore.length > 0) {
+          if (this.rssGroup.length > 0) {
             Tabs() {
-              ForEach(this.rssGroup, (item, index) => {
+               ForEach(this.rssGroup, (rssGroupItem, index) => {
                 TabContent() {
-                  RssListByGroup({ rssGroup: item.items })
+                  RssListByGroup({mCurrentTabIndex:this.currentIndex, group:rssGroupItem.group ,index:index})
                 }
-                .tabBar(this.tabBarBuilder(item.group, index))
+                .tabBar(this.tabBarBuilder(rssGroupItem.group, index))
 
-              })
+              },(group,index)=>group.group+index)
             }
             .barMode(BarMode.Scrollable)
             .animationDuration(400)

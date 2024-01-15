@@ -5,7 +5,11 @@ import { RssListViewModel } from './RssListViewModel'
 
 @Component
 export struct RssListByGroup {
-  rssGroup: RssObject[]
+  @StorageLink('rss') @Watch('onRssStoreChange') rssStore: RssObject[] = []
+  @Prop @Watch('onTabIndexChange') mCurrentTabIndex: number
+  group: string
+  index: number
+  @State rssGroup: RssObject[] = []
   @State viewModel: RssListViewModel = new RssListViewModel()
 
   build() {
@@ -15,19 +19,31 @@ export struct RssListByGroup {
       ListViewContainer({
         viewModel: $viewModel,
       })
-      .height('100%')
+        .height('100%')
     }
     .onRefreshing(() => {
-      this.viewModel.refresh()
+      this.viewModel.refresh(this.rssGroup)
     })
     .height('100%')
+    .width('100%')
+
   }
 
-  // onPageShow() {
-  //   this.viewModel.refresh(this.rssGroup)
-  // }
-  aboutToAppear(){
-    this.viewModel.refresh(this.rssGroup)
+  aboutToAppear() {
+    this.rssGroup = this.rssStore.filter(e => e.group == this.group)
+    this.viewModel.isRefreshing = true
+  }
+
+
+  //我的订阅发生变化
+  onRssStoreChange() {
+    this.rssGroup = this.rssStore.filter(e => e.group == this.group)
+  }
+
+  onTabIndexChange() {
+    if (this.mCurrentTabIndex == this.index) {
+      this.viewModel.refresh(this.rssGroup)
+    }
   }
 }
 
@@ -37,9 +53,7 @@ struct ListViewContainer {
 
   build() {
     Flex({ alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {
-      if (!this.viewModel.isSuccess) {
-        Text('请求失败').textAlign(TextAlign.Center)
-      } else if (this.viewModel.isEmpty) {
+      if (this.viewModel.isEmpty) {
         Text('暂无数据').textAlign(TextAlign.Center)
       } else {
         List({ space: 8, initialIndex: 0 }) {
@@ -70,9 +84,9 @@ struct MainPageListItem {
   private index: number = 0;
 
   build() {
-    Column({ space: 15 }) {
-      if (this.item.source){
-        Row(){
+    Column({ space: 10 }) {
+      if (this.item.source) {
+        Row() {
           Text(this.item.source).fontSize(12).fontWeight(FontWeight.Medium)
           Blank()
           if (this.item.pubDate) {
@@ -104,7 +118,8 @@ struct MainPageListItem {
     .padding(10)
     .backgroundColor(Color.White)
     .border({ style: BorderStyle.Solid, color: Color.Gray, width: 0.2, radius: 10 })
-    .shadow({radius:2})
+    .shadow({ radius: 2 })
+    .margin({ top: 5, bottom: 5 })
 
   }
 }

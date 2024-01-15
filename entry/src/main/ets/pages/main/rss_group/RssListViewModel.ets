@@ -12,22 +12,23 @@ import { CommonDataSource } from '../../../utils/CommonDataSource'
   dataSource = new CommonDataSource([])
 
   //加载数据
-  refresh(objArray?: RssObject[]): void {
-    if (objArray) {
-      this.rssObjects = objArray
-    }
-    if (this.rssObjects.length == 0) {
-      this.isEmpty = true
+  refresh(objArray: RssObject[]): void {
+    if (objArray == this.rssObjects) {
       this.isRefreshing = false
       return
     }
 
-    this.isRefreshing = true
+    if (objArray.length == 0) {
+      this.isEmpty = true
+      this.isRefreshing = false
+      return
+    }
     //先判断是否需要更新
-    this.rssParser.parseRssFromUrls(this.rssObjects.map(e => e.link ?? ''))
+    this.rssParser.parseRssFromUrls(objArray.map(e => e.link ?? ''))
       .then(it => {
         this.dataSource.setData(it)
         this.isSuccess = true
+        this.rssObjects = objArray
       }
       )
       .catch(e => {
