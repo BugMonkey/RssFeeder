@@ -5,7 +5,7 @@ import { RssItem } from '../rssObject';
 import common from '@ohos.app.ability.common';
 
 export class RssParser {
-  async parseRssFromUrls(urls: string[]) {
+  async parseRssFromUrls(urls: string[]):Promise<RssItem[]> {
     let items: RssItem[] = []
     // for (const url of urls) {
       // let task: taskpool.Task = new taskpool.Task(this.parseRssUrl)
@@ -16,7 +16,7 @@ export class RssParser {
     items = result.flat()
     //排序
     items.sort((a, b) => {
-      return (a.pubDate?.getTime() ?? 0) - (b.pubDate?.getTime() ?? 0)
+      return (b.pubDate?.getTime() ?? 0) - (a.pubDate?.getTime() ?? 0)
     })
     return items
   }

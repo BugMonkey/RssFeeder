@@ -5,7 +5,7 @@ import { RssListViewModel } from './RssListViewModel'
 
 @Component
 export struct RssListByGroup {
-  rssGroup: RssObject[] = []
+  rssGroup: RssObject[]
   @State viewModel: RssListViewModel = new RssListViewModel()
 
   build() {
@@ -15,7 +15,7 @@ export struct RssListByGroup {
       ListViewContainer({
         viewModel: $viewModel,
       })
-        .margin({ top: 10 })
+      .height('100%')
     }
     .onRefreshing(() => {
       this.viewModel.refresh()
@@ -23,7 +23,10 @@ export struct RssListByGroup {
     .height('100%')
   }
 
-  aboutToAppear() {
+  // onPageShow() {
+  //   this.viewModel.refresh(this.rssGroup)
+  // }
+  aboutToAppear(){
     this.viewModel.refresh(this.rssGroup)
   }
 }
@@ -39,8 +42,8 @@ struct ListViewContainer {
       } else if (this.viewModel.isEmpty) {
         Text('暂无数据').textAlign(TextAlign.Center)
       } else {
-        List({ space: 12, initialIndex: 0 }) {
-          LazyForEach(new CommonDataSource(this.viewModel.rssList), (item: RssItem, index) => {
+        List({ space: 8, initialIndex: 0 }) {
+          LazyForEach(this.viewModel.dataSource, (item: RssItem, _) => {
             ListItem() {
               NavRouter() {
                 MainPageListItem({ item: item })
@@ -48,8 +51,9 @@ struct ListViewContainer {
 
               }
             }.margin({ left: 10, right: 10 })
-          }, (item: RssItem) => item.title || '')
+          }, (item: RssItem) => item.url || '')
         }
+        .edgeEffect(EdgeEffect.None)
         .width('100%')
         .height('100%')
 
@@ -67,13 +71,26 @@ struct MainPageListItem {
 
   build() {
     Column({ space: 15 }) {
+      if (this.item.source){
+        Row(){
+          Text(this.item.source).fontSize(12).fontWeight(FontWeight.Medium)
+          Blank()
+          if (this.item.pubDate) {
+            Text(this.item.pubDate.toDateString()).fontSize(12)
+          }
+        }
+        .width('100%')
+
+      }
+
+
       Text('' + this.item.title)
         .maxLines(2)
         .fontSize(16)
         .fontWeight(500)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .textAlign(TextAlign.Start)
-      if (this.item.describe?.length > 0) {
+      if (this.item.describe?.length > 0 && this.item.title != this.item.describe) {
         Text(CommonUtil.removeXmlTags(this.item.describe ?? ''))
           .fontSize(12)
           .maxLines(2)
@@ -85,8 +102,9 @@ struct MainPageListItem {
     .width('100%')
     .alignItems(HorizontalAlign.Start)
     .padding(10)
-    .backgroundColor($r('app.color.start_window_background'))
+    .backgroundColor(Color.White)
     .border({ style: BorderStyle.Solid, color: Color.Gray, width: 0.2, radius: 10 })
+    .shadow({radius:2})
 
   }
 }

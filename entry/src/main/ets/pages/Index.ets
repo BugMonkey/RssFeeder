@@ -5,15 +5,8 @@ struct Index {
   @State message: string = 'RssFeeder'
 
   build() {
-    Row() {
-      Column() {
-        Text(this.message)
-          .fontStyle(FontStyle.Italic)
-          .fontSize(50)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.accent_color'))
-      }
-      .width('100%')
+    Flex(){
+      Image($r('app.media.splash_screen')).objectFit(ImageFit.Contain)
     }
     .height('100%')
     .onAppear(()=>{

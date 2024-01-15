@@ -1,26 +1,32 @@
-import ArrayList from '@ohos.util.ArrayList'
 import { RssParser } from '../../../rss/RssParser'
-import { RssItem, RssObject } from '../../../rssObject'
+import { RssObject } from '../../../rssObject'
+import { CommonDataSource } from '../../../utils/CommonDataSource'
 
 @Observed export class RssListViewModel {
   isRefreshing: boolean = false
   isEmpty: boolean = false
   isSuccess: boolean = false
-  private rssObjects: RssObject[]
-  rssList: RssItem[] = []
+  private rssObjects: RssObject[] = []
+  // rssList: RssItem[] = []
   private rssParser = new RssParser()
+  dataSource = new CommonDataSource([])
 
   //加载数据
-  refresh(objArray?: RssObject[]) {
+  refresh(objArray?: RssObject[]): void {
     if (objArray) {
       this.rssObjects = objArray
+    }
+    if (this.rssObjects.length == 0) {
+      this.isEmpty = true
+      this.isRefreshing = false
+      return
     }
 
     this.isRefreshing = true
     //先判断是否需要更新
     this.rssParser.parseRssFromUrls(this.rssObjects.map(e => e.link ?? ''))
       .then(it => {
-        this.rssList = it
+        this.dataSource.setData(it)
         this.isSuccess = true
       }
       )
@@ -28,10 +34,13 @@ import { RssItem, RssObject } from '../../../rssObject'
         console.error('refresh 失败：', e)
         this.isSuccess = false
       })
-    setTimeout(() => {
-      this.isRefreshing = false
-      this.isEmpty = this.rssList.length == 0
+      .finally(() => {
+        setTimeout(() => {
+          this.isRefreshing = false
+          this.isEmpty = this.dataSource.totalCount() == 0
 
-    }, 2_000)
+        }, 500)
+      })
+
   }
 }

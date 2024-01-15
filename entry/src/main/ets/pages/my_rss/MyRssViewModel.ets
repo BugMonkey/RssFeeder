@@ -4,11 +4,13 @@ import { DbHelper } from '../../utils/Dbhelper'
 import { RssItem, RssObject } from '../../rssObject';
 import { RssDbObject } from '../../models/RssDbModel';
 import { CommonDataSource } from '../../utils/CommonDataSource';
+import ArrayList from '@ohos.util.ArrayList';
 
 ///我的订阅
 @Observed
 export class MyRssViewModel {
   loading = true
+  // rssData:RssDbObject[] = new Array(30).fill({group:"111",items:new Array(20).fill({title:'1'})})
   rssData:RssDbObject[] = []
   curIndex: number = 0
   dataSource:CommonDataSource<RssObject>

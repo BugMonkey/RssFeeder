@@ -1,8 +1,8 @@
 import router from '@ohos.router';
 import { RssObject } from '../../rssObject';
+import { DbHelper } from '../../utils/Dbhelper';
 import { MainViewModel } from './MainViewModel';
 import { RssListByGroup } from './rss_group/RssListByGroup';
-
 AppStorage.SetOrCreate('rss', [])
 let storage = new LocalStorage({ 'rss': [] })
 
@@ -10,7 +10,8 @@ let storage = new LocalStorage({ 'rss': [] })
 @Component
 struct MainPage {
   @State viewModel: MainViewModel = new MainViewModel()
-  @StorageLink('rss') @Watch('rssStoreChange') rssStore: RssObject[] = []
+  //我的定位
+  @StorageLink('rss') rssStore: RssObject[] = []
   @State rssGroup: {
     group: string,
     items: RssObject[]
@@ -46,9 +47,6 @@ struct MainPage {
         groups[index].items.push(item)
       }
     }
-    // groups.push({ group: '语文', items: [] })
-    // groups.push({ group: '数学', items: [] })
-    // groups.push({ group: '外语', items: [] })
     this.rssGroup = groups
   }
 
@@ -92,11 +90,12 @@ struct MainPage {
     .hideTitleBar(false)
     .mode(NavigationMode.Stack)
     .hideBackButton(true)
+    .backgroundColor($r('app.color.start_window_background'))
 
   }
 
   @Builder title() {
-    Text('RssFeeder').fontColor($r('app.color.secondary_color')).fontStyle(FontStyle.Italic).fontSize(20)
+    Image($r('app.media.label_text')).objectFit(ImageFit.Auto).height(40)
   }
 
   @Builder tabBarBuilder(name: string, index: number) {
@@ -121,7 +120,20 @@ struct MainPage {
     // this.viewModel.loadData();
     // this.viewModel.loadFromRawFile(getContext(this));
     this.rssStoreChange()
+    //更新缓存
+    DbHelper.updateMyRss(getContext(this),this.rssStore)
 
+  }
+
+  aboutToAppear(){
+    this.initStorage()
+  }
+
+  //初始化缓存
+  initStorage (){
+    DbHelper.getMyRssData(getContext(this)).then((result)=>{
+      this.rssStore = result
+    })
   }
 }
 

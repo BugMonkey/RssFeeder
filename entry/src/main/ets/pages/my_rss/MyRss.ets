@@ -2,6 +2,7 @@ import router from '@ohos.router';
 import { FixSizeWrap } from '../../components/SizeWrap';
 import { RssItem, RssObject } from '../../rssObject';
 import { CommonDataSource } from '../../utils/CommonDataSource';
+import { CommonUtil } from '../../utils/CommonUtil';
 import { MyRssViewModel } from './MyRssViewModel';
 
 
@@ -11,10 +12,9 @@ import { MyRssViewModel } from './MyRssViewModel';
 @Entry
 @Component
 struct MyRss {
-
-  @State viewModel:MyRssViewModel = new MyRssViewModel()
+  @State viewModel: MyRssViewModel = new MyRssViewModel()
   // @State @Watch('onRssPickedChange') pickedRss: Object[] = []
-  @StorageLink('rss') @Watch('onRssPickedChange') pickedRss:RssObject[] = new Array<RssObject>()
+  @StorageLink('rss') @Watch('onRssPickedChange') pickedRss: RssObject[] = new Array<RssObject>()
 
   //控制左侧菜单内容
   leftListController: Scroller = new Scroller()
@@ -25,8 +25,6 @@ struct MyRss {
     width: number,
     height: number
   } = { width: 0, height: 0 }
-
-
 
   @Builder itemHead(text: string) {
     Text(text)
@@ -43,19 +41,16 @@ struct MyRss {
     console.log('onRssPickedChange : ', rssStr)
   }
 
-
-
   build() {
-    Column() {
+    Flex({ direction: FlexDirection.Column,alignItems:ItemAlign.Center ,justifyContent:FlexAlign.Center}) {
       titleBar()
-      if (this.viewModel.loading){
-        LoadingProgress().size({width:40,height:40}).height('100%')
-      }else {
-        if (this.viewModel.rssData.length > 0){
+      if (this.viewModel.loading) {
+        LoadingProgress().size({ width: 40, height: 40 }).height('100%')
+      } else {
+        if (this.viewModel.rssData.length > 0) {
           Row() {
             Scroll(this.leftListController) {
               Column() {
-
                 ForEach(this.viewModel.rssData.map(e => e.group), (item, index) => {
 
 
@@ -75,76 +70,72 @@ struct MyRss {
                 })
               }
               .width(100)
+
             }
             .scrollBar(BarState.Off)
-            .width(100)
+            .height('100%')
+            .backgroundColor($r('app.color.start_window_background'))
 
+            List({ space: 0, scroller: this.rightListController }) {
+              LazyForEach(this.viewModel.dataSource, (project: RssObject) => {
+                // ForEach(this.viewModel.rssData[0].items, (project: RssObject) => {
+                ListItem() {
+                  Row() {
+                    Text(project.title)
 
-              List({ space: 0, scroller: this.rightListController }) {
-                LazyForEach(this.viewModel.dataSource, (project:RssObject) => {
-                  ListItem() {
-                    Row() {
-                      Text(project.title)
-
-                        .height(50).fontSize(16)
-                        .textAlign(TextAlign.Center)
-                      Blank()
-                      Checkbox()
-                        .select(this.pickedRss.findIndex(e=>project.title == e.title) >= 0)
-                        .selectedColor($r('app.color.accent_color'))
-                        .onChange((value: boolean) => {
-                          if (value) {
-                            this.pickedRss.push(project)
-                          } else {
-                            const removeIndex = this.pickedRss.findIndex(e=>project.title == e.title)
-                            if (removeIndex >= 0) {
-                              this.pickedRss.splice(removeIndex, 1)
-                            }
-
+                      .height(50).fontSize(16)
+                      .textAlign(TextAlign.Center)
+                    Blank()
+                    Checkbox()
+                      .select(this.pickedRss.findIndex(e => project.title == e.title) >= 0)
+                      .selectedColor($r('app.color.accent_color'))
+                      .onChange((value: boolean) => {
+                        if (value) {
+                          this.pickedRss.push(project)
+                        } else {
+                          const removeIndex = this.pickedRss.findIndex(e => project.title == e.title)
+                          if (removeIndex >= 0) {
+                            this.pickedRss.splice(removeIndex, 1)
                           }
-                          console.log(this.pickedRss.length.toString());
-                        })
-                    }
-                    .padding({ left: 10, right: 10 })
-                    .width(this.childSize.width)
+
+                        }
+                        console.log(this.pickedRss.length.toString());
+                      })
                   }
-                }, (item:RssObject) => item.link+item.title)
+                  .padding({ left: 10, right: 10 })
+                  .width(this.childSize.width)
+                }
               }
-              .edgeEffect(EdgeEffect.Spring)
-              .onReachStart(() => {
-                console.log('onReachStart')
-              })
-              .onReachEnd(() => {
-                console.log('onReachEnd')
-              })
-              .sticky(StickyStyle.Header | StickyStyle.Footer)
-              .onScrollIndex((start, end) => {
-                console.log(start.toString(), end.toString())
-              })
-              .width(this.childSize.width)
-              .height(820)
-
-              .flexGrow(1)
-
-              .onAreaChange((_, newValue) => {
-                this.childSize = { width: newValue.width as number, height: newValue.height as number }
-                console.log('onAreaChange',this.childSize.width.toString(),this.childSize.height.toString())
-              })
+                , (item: RssObject) => CommonUtil.getUuid())
+            }
+            .sticky(StickyStyle.Header | StickyStyle.Footer)
+            .onScrollIndex((start, end) => {
+              console.log(start.toString(), end.toString())
+            })
+            .width(this.childSize.width)
+            .height('100%')
+            .flexGrow(1)
+            //
+            .onAreaChange((_, newValue) => {
+              this.childSize = { width: newValue.width as number, height: newValue.height as number }
+              console.log('onAreaChange', this.childSize.width.toString(), this.childSize.height.toString())
+            })
 
           }
           .alignItems(VerticalAlign.Top)
           .width('100%')
-          .height('100%')
+
         }
 
       }
 
     }
-    .height('100%')
+
     .width('100%')
+    .height('100%')
   }
 
-  onPageShow(){
+  onPageShow() {
     this.viewModel.loadDataFromDb(getContext(this))
   }
 }
@@ -166,8 +157,8 @@ struct MyRss {
       .fontSize(14)
       .height(48)
       .padding({ right: 18 })
-      .onClick(()=>{
-        router.pushUrl({url:'pages/import/ImportRss'})
+      .onClick(() => {
+        router.pushUrl({ url: 'pages/import/ImportRss' })
       })
   }
   .alignItems(VerticalAlign.Center)

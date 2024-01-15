@@ -1,14 +1,10 @@
 import promptAction from '@ohos.promptAction';
 import { rssRequest, RssXmlResult } from '../../net/http';
 
-import { RssItem, RssObject } from '../../rssObject';
+import { RssObject } from '../../rssObject';
 import router from '@ohos.router';
 import distributedKVStore from '@ohos.data.distributedKVStore';
-import { kvManager } from '../../entryability/EntryAbility';
 import { DbHelper } from '../../utils/Dbhelper';
-import ArrayList from '@ohos.util.ArrayList';
-import { CommonDataSource } from '../../utils/CommonDataSource';
-import { FixSizeWrap } from '../../components/SizeWrap';
 
 @Entry
 @Component
@@ -168,16 +164,7 @@ struct ImportRssPage {
       DbHelper.insertRssData(getContext(this),{
         title: obj.title??'',group:obj.group??'自定义' ,link:obj.link??'',logo: obj.logo??'', describe:obj.describe??''
       })
-      // storeId为数据库唯一标识符
-      kvManager.getKVStore<distributedKVStore.SingleKVStore>('storeId', options, (err, kvStore) => {
-        if (err) {
-          console.error(`Failed to get KVStore. Code:${err.code},message:${err.message}`);
-          return;
-        }
-        console.info('Succeeded in getting KVStore.');
-        // 进行相关数据操作
-        kvStore.put(obj.link??'', JSON.stringify(obj));
-      });
+
     } catch (e) {
       console.error(`An unexpected error occurred. Code:${e.code},message:${e.message}`);
     }

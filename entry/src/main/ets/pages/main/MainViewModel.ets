@@ -21,5 +21,4 @@ export class MainViewModel {
     emitter.off(1)
   }
 
-
 }
