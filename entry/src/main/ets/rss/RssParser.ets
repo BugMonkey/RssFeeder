@@ -5,9 +5,17 @@ import { RssItem } from '../rssObject';
 import common from '@ohos.app.ability.common';
 
 export class RssParser {
+  // 解析所有rss链接
   async parseRssFromUrls(urls: string[]):Promise<RssItem[]> {
-    let result = await Promise.all(urls.map(url => this.parseRssUrl(url)))
-    return new Promise((resolve)=>{
+    let itemsArray = await Promise.all(urls.map(url => this.parseRssUrl(url)))
+    let result = await this.sortRssItems(itemsArray)
+    return result
+
+  }
+
+  // 为所有rssItem排序
+  sortRssItems(result :RssItem[][]):Promise<RssItem[]>{
+   return new Promise((resolve)=>{
       let items: RssItem[] = []
       // for (const url of urls) {
       // let task: taskpool.Task = new taskpool.Task(this.parseRssUrl)
@@ -22,11 +30,11 @@ export class RssParser {
       })
       resolve(items)
     })
-
   }
 
 
   // @Concurrent 无效
+  //解析单个rss
   async parseRssUrl(url: string): Promise<RssItem[]> {
     if (url.length == 0) {
       return []

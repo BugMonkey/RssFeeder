@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/Users/mac/.ohos/config/auto_debug_RssFeeder_com.cheercola.rssfeeder_260086000020835865.cer",
+          "storePassword": "0000001AA6DB940F8FE9566BD9E6470F4C823040FCB85520AB7B445F8C3036D8933B9D0468617BB88301",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001A2AA8A02691F85608416C9C95B9D08574596E59DC2DE42A57EBFE5D04A2062B119D2D508593EF",
+          "profile": "/Users/mac/.ohos/config/auto_debug_RssFeeder_com.cheercola.rssfeeder_260086000020835865.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/mac/.ohos/config/auto_debug_RssFeeder_com.cheercola.rssfeeder_260086000020835865.p12"
+        }
+      }
+    ],
     "compileSdkVersion": 9,
     "compatibleSdkVersion": 9,
     "products": [

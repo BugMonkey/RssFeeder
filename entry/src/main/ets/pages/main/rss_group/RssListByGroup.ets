@@ -30,10 +30,14 @@ export struct RssListByGroup {
   }
 
   aboutToAppear() {
+    console.error('aboutToAppear')
     this.rssGroup = this.rssStore.filter(e => e.group == this.group)
     this.viewModel.isRefreshing = true
   }
 
+  onPageShow(){
+    console.error('onPageShow')
+  }
 
   //我的订阅发生变化
   onRssStoreChange() {
