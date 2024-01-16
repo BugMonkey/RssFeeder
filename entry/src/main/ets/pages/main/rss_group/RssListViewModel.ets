@@ -36,11 +36,8 @@ import { CommonDataSource } from '../../../utils/CommonDataSource'
         this.isSuccess = false
       })
       .finally(() => {
-        setTimeout(() => {
-          this.isRefreshing = false
-          this.isEmpty = this.dataSource.totalCount() == 0
-
-        }, 500)
+        this.isRefreshing = false
+        this.isEmpty = this.dataSource.totalCount() == 0
       })
 
   }

@@ -34,9 +34,7 @@ export class MyRssViewModel {
       this.rssData = dbRssData
     }
     this.dataSource = new CommonDataSource(this.rssData[this.curIndex].items)
-    setTimeout(() => {
-      this.loading = false
-    }, 500)
+    this.loading = false
   }
 
   async loadFromRawFile(context: Context): Promise<RssDbObject[]> {

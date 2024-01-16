@@ -1,8 +1,10 @@
 import router from '@ohos.router';
-import { RssObject } from '../../rssObject';
+import { RssDbObject } from '../../models/RssDbModel';
+import { RssItem, RssObject } from '../../rssObject';
 import { DbHelper } from '../../utils/Dbhelper';
 import { MainViewModel } from './MainViewModel';
 import { RssListByGroup } from './rss_group/RssListByGroup';
+
 AppStorage.SetOrCreate('rss', [])
 let storage = new LocalStorage({ 'rss': [] })
 
@@ -12,29 +14,13 @@ struct MainPage {
   @State viewModel: MainViewModel = new MainViewModel()
   //我的订阅
   @StorageLink('rss') rssStore: RssObject[] = []
-  @State groups:string[] = []
-  @State items:RssObject[] = []
-
-  @State rssGroup: {
-    group: string,
-    items: RssObject[]
-  }[] = []
+  @State groups: string[] = []
+  @State items: RssObject[] = []
+  @State rssGroup: RssDbObject[] = []
   @State currentIndex: number = 0
 
-  @Builder NavigationMenus() {
-    NavRouter() {
-      Row() {
-        Text(`我的订阅`)
-          .fontColor($r('app.color.secondary_color'))
-          .fontSize(12)
-          .textAlign(TextAlign.Start)
-          .onClick(() => {
-            router.pushUrl({ url: 'pages/my_rss/MyRss' },)
-          })
-      }
+  onTabContentPageShow:()=>void = ()=>{}
 
-    }
-  }
 
   rssStoreChange() {
     let groups: {
@@ -56,47 +42,63 @@ struct MainPage {
   }
 
   build() {
-    Navigation() {
-      Stack() {
-        if (!this.viewModel.inited) {
-          LoadingProgress().color($r('app.color.accent_color')).size({ width: 30, height: 30 })
-        } else {
-          if (this.rssGroup.length > 0) {
-            Tabs() {
-               ForEach(this.rssGroup, (rssGroupItem, index) => {
-                TabContent() {
-                  RssListByGroup({mCurrentTabIndex:this.currentIndex, group:rssGroupItem.group ,index:index})
-                }
-                .tabBar(this.tabBarBuilder(rssGroupItem.group, index))
-
-              },(group,index)=>group.group+index)
-            }
-            .barMode(BarMode.Scrollable)
-            .animationDuration(400)
-            .onChange((index: number) => {
-              this.currentIndex = index
+    Scroll(){
+      Column() {
+        Row() {
+          this.title()
+          Blank()
+          Text(`我的订阅`)
+            .fontColor($r('app.color.secondary_color'))
+            .fontSize(12)
+            .textAlign(TextAlign.Start)
+            .onClick(() => {
+              router.pushUrl({ url: 'pages/my_rss/MyRss' },)
             })
+        }.padding({left:10,right:20}).width('100%')
+        Stack() {
+          if (!this.viewModel.inited) {
+            LoadingProgress().color($r('app.color.accent_color')).size({ width: 30, height: 30 })
           } else {
-            Text('暂无订阅，请先添加').fontColor($r('app.color.secondary_color'))
-              .onClick(() => {
-                router.pushUrl({ url: 'pages/my_rss/MyRss' },)
-              })
+            if (this.rssGroup.length > 0) {
+              Flex({direction:FlexDirection.Column}){
+                Row() {
+                  ForEach(this.rssGroup, (rssGroupItem: RssDbObject, index) => {
+                    this.tabBarBuilder(rssGroupItem.group, index)
+                  },(group, index) => group.group + index)
+                }
+                .height(60)
+
+                Swiper() {
+                  ForEach(this.rssGroup, (rssGroupItem, index) => {
+                    RssListByGroup({ mCurrentTabIndex: this.currentIndex, group: rssGroupItem.group, index: index })
+                  }, (group, index) => group.group + index)
+                }
+                .indicator(false)
+                .loop(false)
+                .effectMode(EdgeEffect.None)
+                .onChange((index: number) => {
+                  this.currentIndex = index
+                })
+                .height('100%')
+              }
+
+            } else {
+              Text('暂无订阅，请先添加').fontColor($r('app.color.secondary_color'))
+                .onClick(() => {
+                  router.pushUrl({ url: 'pages/my_rss/MyRss' },)
+                })
+            }
           }
+
         }
-
+        .width('100%')
+        .height('100%') //这是scroll的100%
       }
-      .width('100%')
-      .height('100%')
-
     }
-    .menus(this.NavigationMenus())
-    .title(this.title())
-    .titleMode(NavigationTitleMode.Mini)
-    .hideTitleBar(false)
-    .mode(NavigationMode.Stack)
-    .hideBackButton(true)
+    .scrollBar(BarState.Off)
+    .height('100%')
     .backgroundColor($r('app.color.start_window_background'))
-
+    .scrollable(this.rssGroup.length > 0 ? ScrollDirection.Vertical : ScrollDirection.None)
   }
 
   @Builder title() {
@@ -118,6 +120,7 @@ struct MainPage {
 
       }
     }
+    .onClick(()=>this.currentIndex = index)
 
   }
 
@@ -126,17 +129,17 @@ struct MainPage {
     // this.viewModel.loadFromRawFile(getContext(this));
     this.rssStoreChange()
     //更新缓存
-    DbHelper.updateMyRss(getContext(this),this.rssStore)
+    DbHelper.updateMyRss(getContext(this), this.rssStore)
 
   }
 
-  aboutToAppear(){
+  aboutToAppear() {
     this.initStorage()
   }
 
   //初始化缓存
-  initStorage (){
-    DbHelper.getMyRssData(getContext(this)).then((result)=>{
+  initStorage() {
+    DbHelper.getMyRssData(getContext(this)).then((result) => {
       this.rssStore = result
     })
   }

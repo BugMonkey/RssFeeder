@@ -13,26 +13,27 @@ export struct RssListByGroup {
   @State viewModel: RssListViewModel = new RssListViewModel()
 
   build() {
-    Refresh({ refreshing: $$this.viewModel.isRefreshing }) {
+    // Refresh({ refreshing: $$this.viewModel.isRefreshing }) {
       //@Link子组件从父组件初始化@State的语法为Comp({ aLink: this.aState })。
       // 同样Comp({aLink: $aState})也支持。
       ListViewContainer({
         viewModel: $viewModel,
       })
-        .height('100%')
-    }
-    .onRefreshing(() => {
-      this.viewModel.refresh(this.rssGroup)
-    })
-    .height('100%')
-    .width('100%')
+    // }
+    // .onRefreshing(() => {
+    //   this.viewModel.refresh(this.rssGroup)
+    // })
+    // .height('100%')
+    // .width('100%')
 
   }
+
+
 
   aboutToAppear() {
     console.error('aboutToAppear')
     this.rssGroup = this.rssStore.filter(e => e.group == this.group)
-    this.viewModel.isRefreshing = true
+    this.viewModel.refresh(this.rssGroup)
   }
 
   onPageShow(){
@@ -63,11 +64,7 @@ struct ListViewContainer {
         List({ space: 8, initialIndex: 0 }) {
           LazyForEach(this.viewModel.dataSource, (item: RssItem, _) => {
             ListItem() {
-              NavRouter() {
-                MainPageListItem({ item: item })
-                // RssDetailPage({item:item})
-
-              }
+              MainPageListItem({ item: item })
             }.margin({ left: 10, right: 10 })
           }, (item: RssItem) => item.url || '')
         }
@@ -77,8 +74,6 @@ struct ListViewContainer {
 
       }
     }
-    .width('100%')
-    .height('100%')
   }
 }
 
